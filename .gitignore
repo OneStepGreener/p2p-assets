@@ -1,0 +1,4 @@
+.DS_Store
+venv/
+.venv/
+backend_p2p_assets.zip
