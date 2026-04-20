@@ -46,6 +46,7 @@ class Config:
     CORS_HEADERS = ['Content-Type', 'Authorization', 'X-Requested-With']
     
     # Logging
+    # Logging
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
     
     # Rate Limiting
