@@ -31,6 +31,7 @@ export const API_ENDPOINTS = {
     KPIS: `${API_BASE_URL}${API_VERSION}/assets/kpis`,
     TOTAL_COST: `${API_BASE_URL}${API_VERSION}/assets/total-cost`,
     NET_BOOK_VALUE: `${API_BASE_URL}${API_VERSION}/assets/net-book-value`,
+    DASHBOARD_KPIS: `${API_BASE_URL}${API_VERSION}/assets/dashboard-kpis`,
     CATEGORY_COUNTS: `${API_BASE_URL}${API_VERSION}/assets/category-counts`,
     LOCATIONS: `${API_BASE_URL}${API_VERSION}/assets/locations`,
     REGISTER: `${API_BASE_URL}${API_VERSION}/assets/register`,

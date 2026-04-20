@@ -23,7 +23,7 @@ function getInitials(name: string): string {
   return name.slice(0, 2).toUpperCase();
 }
 
-type TabId = 'register' | 'dashboard' | 'audit' | 'allocation';
+type TabId = 'dashboard' | 'audit' | 'allocation';
 
 interface HeaderProps {
   activeTab: TabId;

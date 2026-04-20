@@ -17,7 +17,14 @@ interface FilterPanelProps {
   locations?: string[];
 }
 
-const DEFAULT_LOCATIONS = ['All', 'New York Office', 'Chicago Office', 'San Francisco Office', 'Data Center'];
+const DEFAULT_LOCATIONS = [
+  'All',
+  'Mumbai - Andheri Branch',
+  'Gurugram - Sector 18 Branch',
+  'Bengaluru - Whitefield Branch',
+  'Chennai - Ambattur DC',
+  'Kolkata - Central Warehouse',
+];
 
 export const FilterPanel: React.FC<FilterPanelProps> = ({
   filters,
@@ -38,7 +45,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   const categories = ['All', 'Computers', 'Furniture', 'Vehicles', 'Office Equipment', 'IT Infrastructure'];
   const statuses = ['All', 'Active', 'Idle', 'Under Maintenance', 'Disposed'];
   const costCenters = ['All', 'CC-IT-001', 'CC-IT-002', 'CC-FIN-001', 'CC-HR-001', 'CC-SALES-001', 'CC-ENG-001', 'CC-OPS-001', 'CC-MKT-001'];
-  const auditors = ['All', 'Robert Chen', 'Lisa Anderson'];
+  const auditors = ['All', 'Amitabh Verma', 'Neha Krishnan'];
   const severities = ['All', 'High', 'Medium', 'Low'];
   const discrepancyStatuses = ['All', 'Awaiting Investigation', 'In Investigation', 'Pending Approval', 'Resolved'];
 

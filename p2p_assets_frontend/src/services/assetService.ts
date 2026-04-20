@@ -25,6 +25,23 @@ export interface NetBookValueResponse {
   net_book_value: number;
 }
 
+/** Response from GET /assets/dashboard-kpis (snake_case from API) */
+export interface DashboardKpisApiData {
+  count: number;
+  idle_count: number;
+  total_cost: number;
+  idle_total_cost: number;
+  net_book_value: number;
+}
+
+export interface DashboardKpis {
+  count: number;
+  idleCount: number;
+  totalCost: number;
+  idleTotalCost: number;
+  netBookValue: number;
+}
+
 export interface CategoryCountItem {
   category: string;
   count: number;
@@ -119,6 +136,32 @@ class AssetService {
       throw new Error(response.message || 'Failed to get net book value');
     } catch (error: any) {
       console.error('Error fetching net book value:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Aggregated dashboard KPIs (one request: count, idle metrics, costs, net book).
+   */
+  async getDashboardKpis(params?: AssetRegisterParams): Promise<DashboardKpis> {
+    try {
+      const url = params
+        ? `${API_ENDPOINTS.ASSETS.DASHBOARD_KPIS}?${this._registerParamsToQuery(params)}`
+        : API_ENDPOINTS.ASSETS.DASHBOARD_KPIS;
+      const response: ApiResponse<DashboardKpisApiData> = await apiClient.get(url);
+      if (response.success && response.data) {
+        const d = response.data;
+        return {
+          count: d.count,
+          idleCount: d.idle_count,
+          totalCost: d.total_cost,
+          idleTotalCost: d.idle_total_cost,
+          netBookValue: d.net_book_value,
+        };
+      }
+      throw new Error(response.message || 'Failed to get dashboard KPIs');
+    } catch (error: any) {
+      console.error('Error fetching dashboard KPIs:', error);
       throw error;
     }
   }

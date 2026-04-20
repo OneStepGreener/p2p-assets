@@ -246,6 +246,36 @@ def get_net_book_value():
         return jsonify(success=False, message=msg if code == 503 else f'Failed to retrieve net book value: {str(e)}'), code
 
 
+@assets_ns.route('/dashboard-kpis')
+@assets_ns.doc('get_dashboard_kpis')
+class DashboardKpis(Resource):
+    """Aggregated dashboard KPIs (count, idle metrics, total cost, net book) with same query params as register."""
+
+    @jwt_required()
+    def get(self):
+        try:
+            scope = get_current_scope()
+            params = _register_params(scope=scope)
+            data = AssetService.get_dashboard_kpis(params)
+            return build_response(data=data, message='Dashboard KPIs retrieved successfully', status_code=200), 200
+        except Exception as e:
+            return build_response(message=f'Failed to retrieve dashboard KPIs: {str(e)}', status_code=500), 500
+
+
+@assets_bp.route('/dashboard-kpis', methods=['GET'])
+@jwt_required()
+def get_dashboard_kpis():
+    """Dashboard KPIs; query params filter like register; idle_* use same filters with status=Idle."""
+    try:
+        scope = get_current_scope()
+        params = _register_params(scope=scope)
+        data = AssetService.get_dashboard_kpis(params)
+        return jsonify(success=True, data=data, message='Dashboard KPIs retrieved successfully'), 200
+    except Exception as e:
+        msg, code = db_error_message_and_code(e)
+        return jsonify(success=False, message=msg if code == 503 else f'Failed to retrieve dashboard KPIs: {str(e)}'), code
+
+
 @assets_ns.route('')
 @assets_ns.doc('get_assets')
 class AssetsList(Resource):

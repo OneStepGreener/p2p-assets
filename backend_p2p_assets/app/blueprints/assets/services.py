@@ -81,6 +81,18 @@ class AssetService:
             return 0.0
 
     @staticmethod
+    def get_dashboard_kpis(params):
+        """Register-filtered KPIs in one call: totals for params plus idle slice (status forced to Idle)."""
+        params_idle = {**params, 'status': 'Idle'}
+        return {
+            'count': asset_queries.get_filtered_count(db.session, params),
+            'idle_count': asset_queries.get_filtered_count(db.session, params_idle),
+            'total_cost': asset_queries.get_filtered_total_cost(db.session, params),
+            'idle_total_cost': asset_queries.get_filtered_total_cost(db.session, params_idle),
+            'net_book_value': asset_queries.get_filtered_net_book_value(db.session, params),
+        }
+
+    @staticmethod
     def mark_asset_idle(asset_ref_id, idle_reason):
         """Copy asset to SRM_IDLE_ASSETS and set ASSET_STATUS = 'Idle' in srm_assets."""
         try:

@@ -4,9 +4,7 @@ import { DataTable, Column } from '../shared/DataTable';
 import { TopFilterBar } from '../shared/TopFilterBar';
 import { FilterState, AssetRegisterRow } from '../../types';
 import type { AssetRegisterParams } from '../../types';
-import { useAssetCount } from '../../hooks/useAssetCount';
-import { useTotalCost } from '../../hooks/useTotalCost';
-import { useNetBookValue } from '../../hooks/useNetBookValue';
+import { useDashboardKpis } from '../../hooks/useDashboardKpis';
 import { useAssetRegister } from '../../hooks/useAssetRegister';
 import { useLocations } from '../../hooks/useLocations';
 import { LoadingSpinner } from '../shared/LoadingSpinner';
@@ -72,12 +70,18 @@ export const AssetDashboard: React.FC<{ filters: FilterState; onFilterChange: (f
     return () => clearTimeout(t);
   }, [registerSearchInput, register.setSearch]);
 
-  // KPI cards use same filters as register (division, branch, search, etc.)
-  const { count: apiAssetCount, loading: countLoading, error: countError } = useAssetCount(register.params);
-  const { count: idleAssetCount, loading: idleCountLoading } = useAssetCount({ ...register.params, status: 'Idle' });
-  const { totalCost: apiTotalCost, loading: costLoading, error: costError } = useTotalCost(register.params);
-  const { totalCost: idleTotalCost } = useTotalCost({ ...register.params, status: 'Idle' });
-  const { netBookValue: apiNetBookValue, loading: netBookValueLoading, error: netBookValueError } = useNetBookValue(register.params);
+  // KPI cards: single aggregated request (same filters as register; idle_* from server with status=Idle)
+  const kpis = useDashboardKpis(register.params);
+  const {
+    count: apiAssetCount,
+    idleCount: idleAssetCount,
+    totalCost: apiTotalCost,
+    idleTotalCost,
+    netBookValue: apiNetBookValue,
+    loading: kpiLoading,
+    error: kpiError,
+    refetch: refetchKpis,
+  } = kpis;
 
   // Locations from cm_division_tlog (distinct HO_COUNTRY_NAME) for dashboard filter
   const { locations: apiLocations } = useLocations();
@@ -118,7 +122,7 @@ export const AssetDashboard: React.FC<{ filters: FilterState; onFilterChange: (f
   const upcomingMaintenance7Days = 0;
   const overdueMaintenance = 0;
   const idleOver30Days = idleAssets;
-  const idleValueAtRisk = idleTotalCost ?? 0;
+  const idleValueAtRisk = idleTotalCost;
 
   // Asset Register columns (srm_assets) - keys map to backend sortBy in onSortRequest
   // Show Acquisition Date first so newest assets appear at the top.
@@ -175,23 +179,25 @@ export const AssetDashboard: React.FC<{ filters: FilterState; onFilterChange: (f
           row={row}
           formatCurrency={formatCurrency}
           onMarkIdle={(assetId, reason) =>
-            assetService.markAssetIdle(assetId, reason).then(() => {
+            assetService.markAssetIdle(assetId, reason).then(async () => {
               handleRegisterFilterChange({ status: 'Idle' });
-              return register.refetch();
+              await Promise.all([register.refetch(), refetchKpis()]);
             }).catch((err) => {
               console.error('Mark as idle failed:', err);
             })
           }
           onMarkActive={(assetId) =>
-            assetService.markAssetActive(assetId).then(() => {
+            assetService.markAssetActive(assetId).then(async () => {
               handleRegisterFilterChange({ status: 'Active' });
-              return register.refetch();
+              await Promise.all([register.refetch(), refetchKpis()]);
             }).catch((err) => {
               console.error('Mark as active failed:', err);
             })
           }
           onTransfer={(params) =>
-            assetService.transferAsset(params).then(() => register.refetch()).catch((err) => {
+            assetService.transferAsset(params).then(async () => {
+              await Promise.all([register.refetch(), refetchKpis()]);
+            }).catch((err) => {
               console.error('Transfer failed:', err);
               throw err;
             })
@@ -234,23 +240,20 @@ export const AssetDashboard: React.FC<{ filters: FilterState; onFilterChange: (f
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        {countError ? (
+        {kpiError ? (
           <div className="col-span-1">
-            <ErrorMessage 
-              message={countError} 
-              onRetry={() => window.location.reload()} 
-            />
+            <ErrorMessage message={kpiError} onRetry={() => void refetchKpis()} />
           </div>
         ) : (
         <KPICard
           title="Total Active Assets"
-            value={countLoading ? (
+            value={kpiLoading ? (
               <LoadingSpinner size="sm" />
             ) : (
               totalActiveAssets
             )}
-            secondaryValue={countLoading ? 'Loading...' : `of ${totalAssets} total`}
-            change={countLoading ? undefined : 3.2}
+            secondaryValue={kpiLoading ? 'Loading...' : `of ${totalAssets} total`}
+            change={kpiLoading ? undefined : 3.2}
           icon={<Box className="h-full w-full" />}
           color="bg-blue-100 text-blue-700"
           bgColor="bg-gradient-to-br from-blue-50 to-white"
@@ -258,12 +261,12 @@ export const AssetDashboard: React.FC<{ filters: FilterState; onFilterChange: (f
         )}
         <KPICard
           title="Idle Assets"
-          value={idleCountLoading ? (
+          value={kpiLoading ? (
             <LoadingSpinner size="sm" />
           ) : (
             idleAssets
           )}
-          secondaryValue={idleCountLoading ? 'Loading...' : `${idlePercentage}% of total`}
+          secondaryValue={kpiLoading ? 'Loading...' : `${idlePercentage}% of total`}
           change={-1.5}
           icon={<Clock className="h-full w-full" />}
           color="bg-orange-100 text-orange-700"
@@ -287,32 +290,32 @@ export const AssetDashboard: React.FC<{ filters: FilterState; onFilterChange: (f
         />
         <KPICard
           title="Total Gross Value"
-          value={costLoading ? (
+          value={kpiLoading ? (
             <LoadingSpinner size="sm" />
-          ) : costError ? (
+          ) : kpiError ? (
             'Error'
           ) : (
             formatCurrency(totalAssetValue)
           )}
-          secondaryValue={costLoading ? 'Loading...' : costError ? costError : undefined}
-          change={costLoading || costError ? undefined : 5.8}
-          changeLabel={costLoading || costError ? undefined : "vs last quarter"}
+          secondaryValue={kpiLoading ? 'Loading...' : kpiError ? kpiError : undefined}
+          change={kpiLoading || kpiError ? undefined : 5.8}
+          changeLabel={kpiLoading || kpiError ? undefined : "vs last quarter"}
           icon={<DollarSign className="h-full w-full" />}
           color="bg-green-100 text-green-700"
           bgColor="bg-gradient-to-br from-green-50 to-white"
         />
         <KPICard
           title="Net Book Value"
-          value={netBookValueLoading ? (
+          value={kpiLoading ? (
             <LoadingSpinner size="sm" />
-          ) : netBookValueError ? (
+          ) : kpiError ? (
             'Error'
           ) : (
             formatCurrency(netBookValue)
           )}
-          secondaryValue={netBookValueLoading ? 'Loading...' : netBookValueError ? netBookValueError : undefined}
-          change={netBookValueLoading || netBookValueError ? undefined : -2.1}
-          changeLabel={netBookValueLoading || netBookValueError ? undefined : "depreciation"}
+          secondaryValue={kpiLoading ? 'Loading...' : kpiError ? kpiError : undefined}
+          change={kpiLoading || kpiError ? undefined : -2.1}
+          changeLabel={kpiLoading || kpiError ? undefined : "depreciation"}
           icon={<TrendingUp className="h-full w-full" />}
           color="bg-green-100 text-green-700"
           bgColor="bg-gradient-to-br from-green-50 to-white"
@@ -363,7 +366,7 @@ export const AssetDashboard: React.FC<{ filters: FilterState; onFilterChange: (f
             <div className="flex items-center justify-between">
               <p className="text-sm text-gray-600">Total Idle</p>
               <p className="text-2xl font-bold text-gray-900">
-                {idleCountLoading ? <LoadingSpinner size="sm" /> : idleOver30Days}
+                {kpiLoading ? <LoadingSpinner size="sm" /> : idleOver30Days}
               </p>
             </div>
             <div className="flex items-center justify-between">
@@ -405,7 +408,10 @@ export const AssetDashboard: React.FC<{ filters: FilterState; onFilterChange: (f
           {register.error ? (
             <ErrorMessage
               message={register.error}
-              onRetry={register.refetch}
+              onRetry={() => {
+                void register.refetch();
+                void refetchKpis();
+              }}
             />
           ) : (
             <>

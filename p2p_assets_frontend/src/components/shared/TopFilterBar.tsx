@@ -176,7 +176,14 @@ export const TopFilterBar: React.FC<TopFilterBarProps> = ({
   }
 
   // Legacy: original template when onRegisterFilterChange not provided
-  const DEFAULT_LOCATIONS = ['All Locations', 'New York Office', 'Chicago Office', 'San Francisco Office', 'Data Center'];
+  const DEFAULT_LOCATIONS = [
+    'All Locations',
+    'Mumbai - Andheri Branch',
+    'Gurugram - Sector 18 Branch',
+    'Bengaluru - Whitefield Branch',
+    'Chennai - Ambattur DC',
+    'Kolkata - Central Warehouse',
+  ];
   const locations = locationsProp && locationsProp.length > 0 ? ['All Locations', ...(locationsProp || [])] : DEFAULT_LOCATIONS;
   const departments = ['All...', 'IT', 'Finance', 'HR', 'Sales', 'Engineering', 'Operations', 'Marketing'];
   const categoriesLegacy = ['All Categories', 'Computers', 'Furniture', 'Vehicles', 'Office Equipment', 'IT Infrastructure'];

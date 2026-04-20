@@ -9,7 +9,6 @@ class Config:
     """Base configuration"""
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
 
-    # API base path (e.g. /aiml/p2p_assets). All routes are served under this prefix.
     # Set via env: URL_PREFIX for local vs server (e.g. production same path, different host).
     URL_PREFIX = os.getenv('URL_PREFIX', '/aiml/p2p_assets').rstrip('/')
     

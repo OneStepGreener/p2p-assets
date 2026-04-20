@@ -5,7 +5,6 @@ import { Audit } from './components/tabs/Audit';
 import { Allocation } from './components/tabs/Allocation';
 import { FilterPanel } from './components/shared/FilterPanel';
 import { LoginSignup } from './components/auth/LoginSignup';
-import { AssetRegister } from './pages/AssetRegister';
 import { FilterState } from './types';
 
 const AUTH_STORAGE_KEY = 'p2p_asset_auth';
@@ -95,8 +94,6 @@ function App() {
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'Asset Register':
-        return <AssetRegister />;
       case 'Asset Dashboard':
         return (
           <AssetDashboard filters={filters} onFilterChange={handleFilterChange} />

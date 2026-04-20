@@ -1,7 +1,7 @@
 import React from 'react';
 import { Header } from '../components/shared/Header';
 
-type TabId = 'register' | 'dashboard' | 'audit' | 'allocation';
+type TabId = 'dashboard' | 'audit' | 'allocation';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,19 +12,17 @@ interface LayoutProps {
 }
 
 const mapTabToId = (tab: string): TabId => {
-  if (tab === 'Asset Register') return 'register';
   if (tab === 'Asset Dashboard') return 'dashboard';
   if (tab === 'Audit') return 'audit';
   if (tab === 'Allocation') return 'allocation';
-  return 'register';
+  return 'dashboard';
 };
 
 const mapIdToTab = (id: TabId): string => {
-  if (id === 'register') return 'Asset Register';
   if (id === 'dashboard') return 'Asset Dashboard';
   if (id === 'audit') return 'Audit';
   if (id === 'allocation') return 'Allocation';
-  return 'Asset Register';
+  return 'Asset Dashboard';
 };
 
 export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange, filterPanel, onLogout }) => {

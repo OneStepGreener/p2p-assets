@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
 
-type TabId = 'register' | 'dashboard' | 'audit' | 'allocation';
+type TabId = 'dashboard' | 'audit' | 'allocation';
 
 interface TabNavigationProps {
   activeTab: TabId;
@@ -9,7 +9,6 @@ interface TabNavigationProps {
 }
 
 const tabs: { id: TabId; label: string }[] = [
-  { id: 'register', label: 'Asset Register' },
   { id: 'dashboard', label: 'Asset Dashboard' },
   { id: 'audit', label: 'Audit' },
   { id: 'allocation', label: 'Allocation' },
